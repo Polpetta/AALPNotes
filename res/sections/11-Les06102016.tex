@@ -1,0 +1,174 @@
+\chapter{Teoria dei linguaggi di programmazione}
+
+Lo scopo è quello di descrivere il comportamento dei programmi, in maniera
+precisa e formale. Esistono diversi tipi di semantiche:
+\begin{itemize}
+  \item Operazionale
+  \item Denotazionale: descrive il comportamento di un programma in termini di
+un oggetto matematico. Descrive la relazione tra \textit{input} e
+\textit{output}
+  \item Assiomatica: descrive le proprietà vere di un programma e deriva le
+proprietà vere usando certe regole assiomatiche.
+\end{itemize}
+
+In questo corso verrà scelta la prima scelta.
+Le semantiche non solo devono essere espressive ma devono anche essere
+utilizzabili, comode per sviluppare delle tecniche di ragionamento, in modo
+tale che possa dimostrare delle proprietà del programma. Questo tipo di
+ragionamento viene detto \textbf{analisi} ed è statica. Verificando
+staticamente si possono ottenere delle proprietà, che essendo rigorose dal
+punto di vista matematico sono anche automatizzabili, in modo tale che il
+controllo su una valenza di una certa proprietà sia demandato a una macchina.
+
+\section{Linguaggi funzionali}
+Lo stile della programmazione funzionale è più orientato a cosa si vuole fare
+piuttosto a come viene eseguito, tipico della programmazione imperativa. Lo
+stile della programmazione funzionale è "dichiarare cosa voglio fare" piuttosto
+che farlo.
+Ad esempio:
+\begin{verbatim}
+  boolean found = false;
+  for (String city : cities) {
+    if (city.equals("Chicago")) {
+      found = true;
+      break;
+    }
+  }
+  System.out.println("Found?" + found);
+\end{verbatim}
+Nella versione funzionale diventa:
+\begin{verbatim}
+  System.out.println("Found Chicago?" + cities.contains ("Chicago"));
+\end{verbatim}
+
+È importante notare come nel primo caso si ha una maggiore verbosità. Inoltre
+vengono eseguite delle modifiche alle variabili, mentre nel secondo caso il
+codice è molto più vicino a quello che si dice la \textit{business logic},
+rendendo il codice più comprensibile.
+
+\subsection{Motivazioni e caratteristiche}
+Caratteristiche distintive dei linguaggi funzionali:
+\begin{itemize}
+  \item Nessuna assegnazione (no assegnamenti)
+  \item Le variabili:
+  \begin{itemize}
+    \item Non rappresentano aree di memoria
+    \item Rappresentano valori immutabili, che sono trasformati e immagazzinati
+in nuove variabili.
+  \end{itemize}
+\end{itemize}
+
+In un programma imperativo un insieme di \textbf{istruzioni} vengono modificate
+ed eseguite, mentre in un linguaggio funzionale un insieme di
+\textbf{espressioni} vengono valutate.
+Per esempio, in un programma imperativo ordinare una lista significa prendere
+gli elementi di una lista e modificarli e ordinarli, mentre in una
+programmazione funzionale ordinare una lista significa creare una lista nuova
+ordinata. Questo potrebbe pensare che la programmazione funzionale porta a
+utilizzare un sacco di memoria in quando i dati vengono copiati, ma a livello
+di compilatore vengono eseguite delle ottimizzazioni che non sarebbero
+possibile in un linguaggio di programmazione non funzionale.
+In un linguaggio funzionale \textbf{non ci sono side-effects}: la chiamata di
+una funziona può essere sostituita con il suo risultato. Questo viene detto
+\textit{referenatial transparency}. Il legame tra la funzione e il suo contesto
+è solo l'input e l'output. Se non sono presenti side-effects dietro le quinte
+le funzioni che vengono scritte sono più comprensibili e più affidabili, perché
+tutto quello che passa dall'input esce dall'output.
+
+Questo porta a una parallelizzazione più semplice, perché due funzioni possono
+essere eseguite indipendentemente dall'ordine se non contengono side-effect
+(se non hanno dati in comune).
+
+Tutti i risultati che si ottengono da una funzione è controllato dal
+\textit{type checker}: in questa maniera è più probabile che eventuali errori
+logici si riflettano in errori di tipo, quindi evidenziati dal compilatore.
+
+I linguaggi funzionali utilizzano la ricorsione e non l'iterazione. Le funzioni
+sono considerate valori \textit{first class}, ovvero:
+\begin{itemize}
+  \item Comportamenti aggregabili con funzioni higher-order
+  \item Un linguaggio con buoni "combinatori" di funzioni supporta la
+decomposizione dei problemi e il riuso del codice.
+\end{itemize}
+
+Soprattutto nei linguaggi moderni è una buona idea concettualizzare una
+funzione come una rappresentazione di un comportamento. Se le funzioni sono
+\textit{first class} allora anche i comportamenti sono \textit{first class}.
+
+\section{Linguaggio L}
+Questo linguaggio verrà utilizzato per studiare il corso.
+$x \in Var$ e $n \in Num$.
+$Termini\ M,N\ ::= x$
+Ovvero:
+\begin{itemize}
+  \item $x$ variabili
+  \item $n | true | false$ costanti intere e booleane
+  \item $M + M | M - M$ operazioni intere
+  \item $if\ M\ then\ M\ else\ M$ condizionale
+  \item fn $x.M$ dichiarazione di funzione
+  \item $MM$ applicazione di funzione
+\end{itemize}
+
+\textit{Definizioni}:
+\begin{itemize}
+  \item \textbf{Programma}: un termine chiuso $M$.
+  \item \textbf{Esecuzione} del programma: trovare il \textbf{valore} del
+termine (espressione) $M$.
+\end{itemize}
+
+Esempi:
+\begin{verbatim}
+  3 + 2               fn x.x
+  fn x.3              fn x.x + 1
+  fn x.x+1 3          fn x.fn y.x + y
+  fn x.2 + x          fn x.(fn y.y+x 2)
+  M=fn x.fn y.(x y)   (M fn z.z) 5
+  3 + false           if 2 then fn x.x + x else 0
+\end{verbatim}
+Negli ultimi due casi si ha una situazione particolare. Queste situazioni
+dovranno essere risolte dal compilatore.
+
+Se al seguente codice:
+\begin{verbatim}
+  ((fn x.fn y. (fn z. z*z) x + (fn z.z*z) y ) 3) 4
+\end{verbatim}
+Diamo dei nomi alle funzioni otteniamo (codice Scala):
+\begin{verbatim}
+  def square (z: Int) :Int = z*z
+  def sumOfSquare (x: Int, y: Int) :Int = square(x) + square (y)
+  sumOfSquare (3,4)
+\end{verbatim}
+
+I passi che il compilatore Scala esegue sono:
+\begin{verbatim}
+  square(3) + square(4)
+  3*3 + square(4)
+  9 + square(4)
+  9 + 4*4
+  9+16
+  25
+\end{verbatim}
+Tutta la procedura descritta è la \textit{semantica} del programma.
+
+\paragraph*{Variabili libere e legate}
+\begin{verbatim}
+  fn x.x           int ide(int x){return x}
+  x+y              -> queste variabili libere non hanno significato
+  fn y. x+y        -> questo programma non ha senso!
+                      (x libera, y legata)
+  fn x. fn y. x+y  int add(int x, int y){return x+y}
+  (fn x.x) x       fn x.x+1 fn y. y+1
+                   alpha-equivalenti
+\end{verbatim}
+Alpha-equivalenti: in questo caso posso rinominare per disambiguare. Vengono
+riscritti i nomi delle variabili legati ma non di quelle libere. Se cambio il
+nome del parametro formale la funzione non cambia.
+
+\textbf{Definizione}: (Variabili libere). Dato un termine $M$, le variabili
+libere di $M$, $fv(M)$, sono definite induttivamente come segue:
+%aggiungere lista
+Un termine senza alcuna variabile libera, si dice \textit{chiuso}. I programmi
+sono termini chiusi.
+
+\paragraph{Sostituzione $M{x:=N}$}
+%copiare appunti presi a matita
